@@ -21,20 +21,3 @@ optional arguments:
 
 
 
-s
- 1. harvest            2. bitbucket          3. holidayplan        4.  aap        
- 5. belasting          6. gitlab             7. koofr              8. spotweb           
- 9. ansible           10. moneybird         11. keep              12. uptimekuma        
-13. gmail             14. google calendar   15. proxmox           16. keep git          
-
-
-
-
-  s -a NOS https://nos.nl
-NOS added to the menu.
- s nos
-27. nos             
-54. NOS             
-s 27
-You chose option 27: nos
- 
