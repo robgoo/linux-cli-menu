@@ -70,15 +70,25 @@ def add_menu_item(config, new_item, new_command):
     save_config(config)
     print(f"{new_item} added to the menu.")
 
-def remove_menu_item(config, index):
-    """Remove a menu item from the configuration."""
-    index -= 1
-    if 0 <= index < len(config["menu_items"]):
-        removed_item = config["menu_items"].pop(index)[0]
-        save_config(config)
-        print(f"{removed_item} removed from the menu, and saved config.")
+def remove_menu_item(config, identifier):
+    """Remove a menu item from the configuration by index or search string."""
+    if str(identifier).isdigit():
+        index = int(identifier) - 1
+        if 0 <= index < len(config["menu_items"]):
+            removed_item = config["menu_items"].pop(index)[0]
+            save_config(config)
+            print(f"{removed_item} removed from the menu, and saved config.")
+        else:
+            print("Invalid index.")
     else:
-        print("Invalid input.")
+        search_term = identifier.lower()
+        for index, item in enumerate(config["menu_items"]):
+            if search_term in item[0].lower():
+                removed_item = config["menu_items"].pop(index)[0]
+                save_config(config)
+                print(f"{removed_item} removed from the menu, and saved config.")
+                return
+        print("Item not found.")
 
 def change_menu_item(config, index, new_item, new_command):
     """Change an existing menu item in the configuration."""
@@ -134,7 +144,7 @@ def search_items(config, term):
 
 def run_command(index, item, command, config):
     """Execute a command associated with a menu item."""
-    print(f"You chose option {index+1}: {item}")
+    print(f"You chose option {index}: {item}")
     if command.startswith("http"):
         browser_cmd = config["chrome_executable_path"]
         url = command
@@ -142,21 +152,27 @@ def run_command(index, item, command, config):
             subprocess.run([browser_cmd, url], check=True)
         except FileNotFoundError:
             print(f"Browser '{browser_cmd}' not found.")
+        except subprocess.CalledProcessError:
+            print("Failed to open the URL.")
     else:
         cmd = command.split()
         try:
             subprocess.run(cmd, check=True)
         except FileNotFoundError:
             print(f"Command '{cmd}' not found.")
+        except subprocess.CalledProcessError as e:
+            print(f"Command failed with exit status {e.returncode}.")
         except KeyboardInterrupt:
             handle_keyboard_interrupt()
+
+    print("Command execution completed.")
 
 def main():
     """Main function to parse arguments and handle the menu logic."""
     parser = argparse.ArgumentParser()
     parser.add_argument('search', nargs='?', help='search for a menu item or provide item number')
     parser.add_argument('-a', '--add', nargs=2, metavar=('ITEM', 'COMMAND'), help='add a new menu item')
-    parser.add_argument('-r', '--remove', type=int, metavar='INDEX', help='remove a menu item')
+    parser.add_argument('-r', '--remove', metavar='IDENTIFIER', help='remove a menu item by index or name')
     parser.add_argument('-c', '--change', nargs=3, metavar=('INDEX', 'ITEM', 'COMMAND'), help='change a menu item')
     parser.add_argument('-n', '--newline', type=int, metavar='VALUE', help='change number of items per line')
     parser.add_argument('-e', '--edit', action='store_true', help='open the configuration file in an editor')
